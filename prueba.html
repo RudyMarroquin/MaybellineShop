@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>Prueba de Pedido - Maybelline Shop</title>
+</head>
+<body>
+  <h2>Agregar Pedido</h2>
+  <form id="pedidoForm">
+    <label>Cliente:</label><br>
+    <input type="text" name="cliente" value="Ana López"><br>
+    <label>Producto:</label><br>
+    <input type="text" name="producto" value="Máscara de pestañas"><br>
+    <label>Cantidad:</label><br>
+    <input type="number" name="cantidad" value="3"><br>
+    <label>Precio Unitario:</label><br>
+    <input type="number" name="precioUnitario" value="70"><br><br>
+    <button type="submit">Enviar Pedido</button>
+  </form>
+
+  <h3>Respuesta del servidor:</h3>
+  <pre id="respuesta"></pre>
+
+  <script>
+    const form = document.getElementById('pedidoForm');
+    const respuesta = document.getElementById('respuesta');
