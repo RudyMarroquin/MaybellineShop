@@ -16,3 +16,7 @@ mongoose.connect(process.env.MONGO_URL)
 app.listen(PORT, () => {
   console.log(`Servidor corriendo en puerto ${PORT}`);
 });
+
+app.get('/', (req, res) => {
+  res.send('🚀 Bienvenido a la API de Maybelline Shop');
+});
