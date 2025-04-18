@@ -1,3 +1,5 @@
+npm install mongoose
+
 {
   "name": "maybelline-shop",
   "version": "1.0.0",
