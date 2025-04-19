@@ -1,9 +1,15 @@
 const express = require('express');
+const cors = require('cors');
 const mongoose = require('mongoose');
-const app = express();
-require('dotenv').config();
 
-const PORT = process.env.PORT || 10000;
+const app = express();
+const port = process.env.PORT || 10000;
+
+// Habilita CORS para todas las rutas
+app.use(cors());
+app.use(express.json());
+
+// Tu conexión a Mongo y rutas
 
 app.use(express.json());
 // Ruta de prueba
