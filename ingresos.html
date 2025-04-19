@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>Ingresos - Maybelline Shop</title>
+  <style>
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      background: #f4f4f4;
+      padding: 30px;
+      max-width: 800px;
+      margin: auto;
+    }
+
+    h2 {
+      color: #8A2BE2;
+    }
+
+    form {
+      background: #fff;
+      padding: 20px;
+      border-radius: 10px;
+      box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+      margin-bottom: 30px;
+    }
+
+    label {
+      font-weight: bold;
+    }
+
+    input {
+      width: 100%;
+      padding: 8px;
+      margin-top: 5px;
+      margin-bottom: 15px;
+      border-radius: 5px;
+      border: 1px solid #ccc;
+    }
+
+    button {
+      background: #8A2BE2;
+      color: white;
+      padding: 10px 15px;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+      transition: background 0.3s;
+    }
+
+    button:hover {
+      background: #6a1bb0;
+    }
+
+    .actualizar {
+      margin-bottom: 20px;
+      background-color: #28a745;
+    }
+
+    .actualizar:hover {
+      background-color: #218838;
+    }
+
+    .acciones button {
+      margin-left: 10px;
+      background-color: #dc3545;
+    }
+
+    .acciones .editar {
+      background-color: #ffc107;
+      color: #000;
+    }
+
+    .acciones button:hover {
+      opacity: 0.8;
+    }
+
+    li {
+      background: #fff;
+      margin-bottom: 10px;
+      padding: 15px;
+      border-radius: 8px;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+  </style>
+</head>
+<body>
+  <h2>Registrar o editar ingreso</h2>
+  <form id="formIngreso">
+    <input type="hidden" name="id">
+    <label>Fuente de ingreso:</label>
+    <input type="text" name="fuente" required>
+
+    <label>Monto:</label>
+    <input type="number" name="monto" required>
+
+    <label>Descripción:</label>
+    <input type="text" name="descripcion" required>
+
+    <button type="submit">Guardar Ingreso</button>
+  </form>
+
+  <p id="mensaje"></p>
+
+  <hr>
+
+  <h2>Lista de ingresos</h2>
+  <button class="actualizar" onclick="cargarIngresos()">🔄 Actualizar Lista</button>
+  <ul id="listaIngresos"></ul>
+
+  <script>
+    const form = document.getElementById('formIngreso');
+    const mensaje = document.getElementById('mensaje');
+    const lista = document.getElementById('listaIngresos');
+
+    const API_URL = 'https://maybellineshop.onrender.com/ingresos';
+
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+
+      const id = form.id.value;
+      const datos = {
+        fuente: form.fuente.value,
+        monto: parseFloat(form.monto.value),
+        descripcion: form.descripcion.value
+      };
+
+      try {
+        let res;
+        if (id) {
+          res = await fetch(`${API_URL}/${id}`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(datos)
+          });
+        } else {
+          res = await fetch(API_URL, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(datos)
+          });
+        }
+
+        if (res.ok) {
+          mensaje.textContent = id ? '✅ Ingreso actualizado.' : '✅ Ingreso registrado.';
+          mensaje.style.color = 'green';
+          form.reset();
+          form.id.value = '';
+          cargarIngresos();
+        } else {
+          mensaje.textContent = '❌ Error al guardar.';
+          mensaje.style.color = 'red';
+        }
+      } catch (err) {
+        mensaje.textContent = '❌ Error de conexión.';
+        mensaje.style.color = 'red';
+        console.error(err);
+      }
+    });
+
+    async function cargarIngresos() {
+      lista.innerHTML = 'Cargando...';
+      try {
+        const res = await fetch(API_URL);
+        const ingresos = await res.json();
+
+        lista.innerHTML = '';
+        ingresos.forEach(i => {
+          const item = document.createElement('li');
+          item.innerHTML = `
+            ${i.fuente} - Q${i.monto} - ${i.descripcion}
+            <div class="acciones">
+              <button class="editar" onclick='editarIngreso(${JSON.stringify(i)})'>✏️</button>
+              <button onclick="eliminarIngreso('${i._id}')">🗑️</button>
+            </div>
+          `;
+          lista.appendChild(item);
+        });
+      } catch (err) {
+        lista.innerHTML = '❌ Error al cargar ingresos.';
+        console.error(err);
+      }
+    }
+
+    function editarIngreso(ingreso) {
+      form.id.value = ingreso._id;
+      form.fuente.value = ingreso.fuente;
+      form.monto.value = ingreso.monto;
+      form.descripcion.value = ingreso.descripcion;
+      mensaje.textContent = '✏️ Editando ingreso...';
+      mensaje.style.color = '#ffc107';
+    }
+
+    async function eliminarIngreso(id) {
+      if (confirm('¿Estás seguro de eliminar este ingreso?')) {
+        try {
+          const res = await fetch(`${API_URL}/${id}`, {
+            method: 'DELETE'
+          });
+
+          if (res.ok) {
+            mensaje.textContent = '🗑️ Ingreso eliminado.';
+            mensaje.style.color = 'gray';
+            cargarIngresos();
+          } else {
+            mensaje.textContent = '❌ Error al eliminar.';
+            mensaje.style.color = 'red';
+          }
+        } catch (err) {
+          mensaje.textContent = '❌ Error de conexión.';
+          mensaje.style.color = 'red';
+        }
+      }
+    }
+
+    cargarIngresos();
+  </script>
+</body>
+</html>

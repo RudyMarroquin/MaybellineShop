@@ -1,0 +1,226 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>Compras - Maybelline Shop</title>
+  <style>
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      background: #f4f4f4;
+      padding: 30px;
+      max-width: 800px;
+      margin: auto;
+    }
+
+    h2 {
+      color: #8A2BE2;
+    }
+
+    form {
+      background: #fff;
+      padding: 20px;
+      border-radius: 10px;
+      box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+      margin-bottom: 30px;
+    }
+
+    label {
+      font-weight: bold;
+    }
+
+    input {
+      width: 100%;
+      padding: 8px;
+      margin-top: 5px;
+      margin-bottom: 15px;
+      border-radius: 5px;
+      border: 1px solid #ccc;
+    }
+
+    button {
+      background: #8A2BE2;
+      color: white;
+      padding: 10px 15px;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+      transition: background 0.3s;
+    }
+
+    button:hover {
+      background: #6a1bb0;
+    }
+
+    .actualizar {
+      margin-bottom: 20px;
+      background-color: #28a745;
+    }
+
+    .actualizar:hover {
+      background-color: #218838;
+    }
+
+    .acciones button {
+      margin-left: 10px;
+      background-color: #dc3545;
+    }
+
+    .acciones .editar {
+      background-color: #ffc107;
+      color: #000;
+    }
+
+    .acciones button:hover {
+      opacity: 0.8;
+    }
+
+    li {
+      background: #fff;
+      margin-bottom: 10px;
+      padding: 15px;
+      border-radius: 8px;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+  </style>
+</head>
+<body>
+  <h2>Registrar o editar compra</h2>
+  <form id="formCompra">
+    <input type="hidden" name="id">
+    <label>Proveedor:</label>
+    <input type="text" name="proveedor" required>
+
+    <label>Producto:</label>
+    <input type="text" name="producto" required>
+
+    <label>Cantidad:</label>
+    <input type="number" name="cantidad" required>
+
+    <label>Precio Unitario:</label>
+    <input type="number" name="precioUnitario" required>
+
+    <button type="submit">Guardar Compra</button>
+  </form>
+
+  <p id="mensaje"></p>
+
+  <hr>
+
+  <h2>Lista de compras</h2>
+  <button class="actualizar" onclick="cargarCompras()">🔄 Actualizar Lista</button>
+  <ul id="listaCompras"></ul>
+
+  <script>
+    const form = document.getElementById('formCompra');
+    const mensaje = document.getElementById('mensaje');
+    const lista = document.getElementById('listaCompras');
+
+    const API_URL = 'https://maybellineshop.onrender.com/compras';
+
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+
+      const id = form.id.value;
+      const datos = {
+        proveedor: form.proveedor.value,
+        producto: form.producto.value,
+        cantidad: parseInt(form.cantidad.value),
+        precioUnitario: parseFloat(form.precioUnitario.value)
+      };
+
+      try {
+        let res;
+        if (id) {
+          res = await fetch(`${API_URL}/${id}`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(datos)
+          });
+        } else {
+          res = await fetch(API_URL, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(datos)
+          });
+        }
+
+        if (res.ok) {
+          mensaje.textContent = id ? '✅ Compra actualizada.' : '✅ Compra registrada.';
+          mensaje.style.color = 'green';
+          form.reset();
+          form.id.value = '';
+          cargarCompras();
+        } else {
+          mensaje.textContent = '❌ Error al guardar.';
+          mensaje.style.color = 'red';
+        }
+      } catch (err) {
+        mensaje.textContent = '❌ Error de conexión.';
+        mensaje.style.color = 'red';
+        console.error(err);
+      }
+    });
+
+    async function cargarCompras() {
+      lista.innerHTML = 'Cargando...';
+      try {
+        const res = await fetch(API_URL);
+        const compras = await res.json();
+
+        lista.innerHTML = '';
+        compras.forEach(c => {
+          const item = document.createElement('li');
+          item.innerHTML = `
+            ${c.proveedor} - ${c.producto} (x${c.cantidad}) - Q${c.precioUnitario}
+            <div class="acciones">
+              <button class="editar" onclick='editarCompra(${JSON.stringify(c)})'>✏️</button>
+              <button onclick="eliminarCompra('${c._id}')">🗑️</button>
+            </div>
+          `;
+          lista.appendChild(item);
+        });
+      } catch (err) {
+        lista.innerHTML = '❌ Error al cargar compras.';
+        console.error(err);
+      }
+    }
+
+    function editarCompra(compra) {
+      form.id.value = compra._id;
+      form.proveedor.value = compra.proveedor;
+      form.producto.value = compra.producto;
+      form.cantidad.value = compra.cantidad;
+      form.precioUnitario.value = compra.precioUnitario;
+      mensaje.textContent = '✏️ Editando compra...';
+      mensaje.style.color = '#ffc107';
+    }
+
+    async function eliminarCompra(id) {
+      if (confirm('¿Estás seguro de eliminar esta compra?')) {
+        try {
+          const res = await fetch(`${API_URL}/${id}`, {
+            method: 'DELETE'
+          });
+
+          if (res.ok) {
+            mensaje.textContent = '🗑️ Compra eliminada.';
+            mensaje.style.color = 'gray';
+            cargarCompras();
+          } else {
+            mensaje.textContent = '❌ Error al eliminar.';
+            mensaje.style.color = 'red';
+          }
+        } catch (err) {
+          mensaje.textContent = '❌ Error de conexión.';
+          mensaje.style.color = 'red';
+        }
+      }
+    }
+
+    cargarCompras();
+  </script>
+</body>
+</html>
