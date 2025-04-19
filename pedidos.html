@@ -2,93 +2,40 @@
 <html lang="es">
 <head>
   <meta charset="UTF-8">
-  <title>Gestión de Pedidos - Maybelline Shop</title>
-</head>
-<body>
-  <h2>Registrar nuevo pedido</h2>
-  <form id="formPedido">
-    <label>Cliente:</label><br>
-    <input type="text" name="cliente" required><br><br>
-
-    <label>Producto:</label><br>
-    <input type="text" name="producto" required><br><br>
-
-    <label>Cantidad:</label><br>
-    <input type="number" name="cantidad" required><br><br>
-
-    <label>Precio Unitario:</label><br>
-    <input type="number" name="precioUnitario" required><br><br>
-
-    <button type="submit">Guardar Pedido</button>
-  </form>
-
-  <p id="mensaje"></p>
-
-  <hr>
-
-  <h2>Lista de pedidos</h2>
-  <button onclick="cargarPedidos()">🔄 Actualizar Lista</button>
-  <ul id="listaPedidos"></ul>
-
-  <script>
-    const form = document.getElementById('formPedido');
-    const mensaje = document.getElementById('mensaje');
-    const lista = document.getElementById('listaPedidos');
-
-    const API_URL = 'https://maybellineshop.onrender.com/pedidos';
-
-    form.addEventListener('submit', async (e) => {
-      e.preventDefault();
-
-      const datos = {
-        cliente: form.cliente.value,
-        producto: form.producto.value,
-        cantidad: parseInt(form.cantidad.value),
-        precioUnitario: parseFloat(form.precioUnitario.value)
-      };
-
-      try {
-        const res = await fetch(API_URL, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json'
-          },
-          body: JSON.stringify(datos)
-        });
-
-        if (res.ok) {
-          mensaje.textContent = '✅ Pedido registrado correctamente.';
-          form.reset();
-          cargarPedidos(); // Recarga la lista
-        } else {
-          mensaje.textContent = '❌ Error al guardar el pedido.';
-        }
-      } catch (err) {
-        mensaje.textContent = '❌ Error de conexión.';
-        console.error(err);
-      }
-    });
-
-    async function cargarPedidos() {
-      lista.innerHTML = 'Cargando...';
-      try {
-        const res = await fetch(API_URL);
-        const pedidos = await res.json();
-
-        lista.innerHTML = '';
-        pedidos.forEach(p => {
-          const item = document.createElement('li');
-          item.textContent = `${p.cliente} - ${p.producto} (x${p.cantidad}) - Q${p.precioUnitario}`;
-          lista.appendChild(item);
-        });
-      } catch (err) {
-        lista.innerHTML = '❌ Error al cargar pedidos.';
-        console.error(err);
-      }
+  <title>Pedidos - Maybelline Shop</title>
+  <style>
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      background: #f7f7f7;
+      padding: 30px;
+      max-width: 800px;
+      margin: auto;
     }
 
-    // Cargar pedidos al iniciar
-    cargarPedidos();
-  </script>
-</body>
-</html>
+    h2 {
+      color: #8A2BE2;
+    }
+
+    form {
+      background: #fff;
+      padding: 20px;
+      border-radius: 10px;
+      box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+      margin-bottom: 30px;
+    }
+
+    label {
+      font-weight: bold;
+    }
+
+    input {
+      width: 100%;
+      padding: 8px;
+      margin-top: 5px;
+      margin-bottom: 15px;
+      border-radius: 5px;
+      border: 1px solid #ccc;
+    }
+
+    button {
+      background: #8A2BE2;
