@@ -39,3 +39,133 @@
 
     button {
       background: #8A2BE2;
+      color: white;
+      padding: 10px 15px;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+      transition: background 0.3s;
+    }
+
+    button:hover {
+      background: #6a1bb0;
+    }
+
+    #mensaje {
+      font-weight: bold;
+      margin-top: 10px;
+    }
+
+    ul {
+      list-style: none;
+      padding: 0;
+    }
+
+    li {
+      background: #fff;
+      margin-bottom: 10px;
+      padding: 15px;
+      border-radius: 8px;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+    }
+
+    .actualizar {
+      margin-bottom: 20px;
+      background-color: #28a745;
+    }
+
+    .actualizar:hover {
+      background-color: #218838;
+    }
+  </style>
+</head>
+<body>
+  <h2>Registrar nuevo pedido</h2>
+  <form id="formPedido">
+    <label>Cliente:</label>
+    <input type="text" name="cliente" required>
+
+    <label>Producto:</label>
+    <input type="text" name="producto" required>
+
+    <label>Cantidad:</label>
+    <input type="number" name="cantidad" required>
+
+    <label>Precio Unitario:</label>
+    <input type="number" name="precioUnitario" required>
+
+    <button type="submit">Guardar Pedido</button>
+  </form>
+
+  <p id="mensaje"></p>
+
+  <hr>
+
+  <h2>Lista de pedidos</h2>
+  <button class="actualizar" onclick="cargarPedidos()">🔄 Actualizar Lista</button>
+  <ul id="listaPedidos"></ul>
+
+  <script>
+    const form = document.getElementById('formPedido');
+    const mensaje = document.getElementById('mensaje');
+    const lista = document.getElementById('listaPedidos');
+
+    const API_URL = 'https://maybellineshop.onrender.com/pedidos';
+
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+
+      const datos = {
+        cliente: form.cliente.value,
+        producto: form.producto.value,
+        cantidad: parseInt(form.cantidad.value),
+        precioUnitario: parseFloat(form.precioUnitario.value)
+      };
+
+      try {
+        const res = await fetch(API_URL, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify(datos)
+        });
+
+        if (res.ok) {
+          mensaje.textContent = '✅ Pedido registrado correctamente.';
+          mensaje.style.color = 'green';
+          form.reset();
+          cargarPedidos();
+        } else {
+          mensaje.textContent = '❌ Error al guardar el pedido.';
+          mensaje.style.color = 'red';
+        }
+      } catch (err) {
+        mensaje.textContent = '❌ Error de conexión.';
+        mensaje.style.color = 'red';
+        console.error(err);
+      }
+    });
+
+    async function cargarPedidos() {
+      lista.innerHTML = 'Cargando...';
+      try {
+        const res = await fetch(API_URL);
+        const pedidos = await res.json();
+
+        lista.innerHTML = '';
+        pedidos.forEach(p => {
+          const item = document.createElement('li');
+          item.textContent = `${p.cliente} - ${p.producto} (x${p.cantidad}) - Q${p.precioUnitario}`;
+          lista.appendChild(item);
+        });
+      } catch (err) {
+        lista.innerHTML = '❌ Error al cargar pedidos.';
+        console.error(err);
+      }
+    }
+
+    cargarPedidos();
+  </script>
+</body>
+</html>
